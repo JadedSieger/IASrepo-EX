@@ -1,56 +1,57 @@
 <?php
-require "tools/db.php";
+include './process/auth.php'; // Keep your session/auth
+require "./tools/db.php";
 
-$message = "";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = trim($_POST["username"]);
-    $password = $_POST["password"];
-
-    if (empty($username) || empty($password)) {
-        $message = "All fields are required.";
-    } else {
-        $conn = getDBConnection();
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-        $stmt->bind_param("ss", $username, $hashedPassword);
-
-        if ($stmt->execute()) {
-            $message = "Account created successfully!";
-        } else {
-            $message = "Username already exists.";
-        }
-
-        $stmt->close();
-        $conn->close();
-    }
-}
+$success = "";
+$error = "";
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sign Up</title>
+    <title>Feelingradation</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div class="auth-container">
-    <h2>Sign Up</h2>
+<div class="page-wrapper">
 
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username">
-        <input type="password" name="password" placeholder="Password">
-        <button type="submit">Sign Up</button>
-    </form>
+    <header>
+        <h1>Feelingradation</h1>
+        <nav>
+            <a href="index.php">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            <a href="./process/logout.php">Log Out</a>
+        </nav>
+    </header>
 
-    <div class="message"><?php echo $message; ?></div>
+    <main>
+        <div class="home-card">
+            <h2>Welcome</h2>
+            <p>Let me know what you're feeling right now.</p>
 
-    <p>
-        <a href="login.php">Already have an account?</a>
-    </p>
+            <!-- Form with ID for JS -->
+            <form id="aiForm">
+                <input type="text" name="input" id="title" placeholder="Subject" required>
+                <textarea name="message" id="message" placeholder="Your message..." required></textarea>
+                <button type="submit">Submit</button>
+            </form>
+
+            <p style="color:lime;" id="success"><?php echo $success; ?></p>
+            <p style="color:red;" id="error"><?php echo $error; ?></p>
+
+            <h3>Hi, Mei here.</h3>
+            <textarea class="aiResponse" id="aiResponse" readonly></textarea>
+        </div>
+    </main>
+
+    <footer>
+        © <?php echo date("Y"); ?> Feelingradation. All rights reserved.
+    </footer>
+
 </div>
 
+<script src="ai.js"></script>
 </body>
 </html>

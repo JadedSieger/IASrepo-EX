@@ -1,27 +1,32 @@
 <?php
 session_start();
+
 require "tools/db.php";
 
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = trim($_POST["username"]);
+    $login = trim($_POST["username"]); // can be username or email
     $password = $_POST["password"];
 
     $conn = getDBConnection();
-    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
+    $stmt = $conn->prepare(
+        "SELECT id, username, password FROM users 
+         WHERE username = ? OR email = ?"
+    );
+
+    $stmt->bind_param("ss", $login, $login);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows === 1) {
-        $stmt->bind_result($id, $hashedPassword);
+        $stmt->bind_result($id, $username, $hashedPassword);
         $stmt->fetch();
 
         if (password_verify($password, $hashedPassword)) {
             $_SESSION["user_id"] = $id;
             $_SESSION["username"] = $username;
-            header("Location: https://jadedsieger.github.io/home.html");
+            header("Location: index.php");
             exit();
         } else {
             $message = "Invalid password.";
@@ -34,6 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $conn->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -55,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="message"><?php echo $message; ?></div>
 
     <p>
-        <a href="index.php">Create an account</a>
+        <a href="sign.php">Create an account</a>
     </p>
 </div>
 
